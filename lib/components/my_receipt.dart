@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/models/restaurant.dart';
 import 'package:provider/provider.dart';
-import '../pages/home_page.dart';
 
 class MyReceipt extends StatelessWidget {
   const MyReceipt({super.key});
