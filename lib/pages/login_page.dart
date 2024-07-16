@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_delivery_app/components/my_button.dart';
 import 'package:food_delivery_app/components/my_textfield.dart';
 import 'package:food_delivery_app/services/auth/auth_services.dart';
+import 'package:email_validator/email_validator.dart'; // Add this import
 
 class LoginPage extends StatefulWidget {
   final void Function()? onTap;
@@ -57,28 +58,25 @@ class _LoginPageState extends State<LoginPage> {
 
   // Forgot password
   void forgotPw() async {
-    final String email = emailController.text;
-    if (email.isEmpty) {
+    final String email = emailController.text.trim();
+
+    // Validate email format
+    if (!EmailValidator.validate(email)) {
       _showErrorDialog(
-        "Email Required",
-        "Please enter your email to reset your password.",
+        "Invalid Email",
+        "Please enter a valid email address.",
       );
       return;
     }
 
     final authService = AuthService();
     try {
-      bool emailRegistered = await authService.isEmailRegistered(email);
-      if (emailRegistered) {
-        await authService.sendPasswordResetEmail(email);
-        _showSuccessDialog("Success", "Password reset email sent.");
-      } else {
-        _showErrorDialog(
-          "Email Not Found",
-          "This email address is not registered. Please sign up.",
-        );
-      }
+      await authService.sendPasswordResetEmail(email);
+      _showSuccessDialog(
+          "Success", "Password reset email sent. Please check your inbox.");
     } catch (e) {
+      // Log the error for debugging
+      print("Error in forgotPw: $e");
       _showErrorDialog(
         "Failed to Send Email",
         "An error occurred while sending the password reset email. Please try again.",
