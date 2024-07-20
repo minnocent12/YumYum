@@ -43,7 +43,7 @@ class MyDescriptionBox extends StatelessWidget {
                 style: myPrimaryTextStyle,
               ),
               Text(
-                "QuickPlates Delivery time",
+                "YumYum Burgers Delivery time",
                 style: mySecondaryTextStyle,
               ),
             ],

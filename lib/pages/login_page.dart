@@ -159,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildAppSlogan() {
     return Text(
-      "QuickPlates Food Delivery",
+      "YumYum Burgers",
       style: TextStyle(
         fontSize: 16,
         color: Theme.of(context).colorScheme.inversePrimary,

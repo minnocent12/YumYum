@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:food_delivery_app/components/my_drawer_tile.dart';
 import 'package:food_delivery_app/services/auth/auth_services.dart';
 import '../pages/settings_page.dart';
+import '../pages/order_history_page.dart'; // Import the Order History Page
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
@@ -39,6 +40,21 @@ class MyDrawer extends StatelessWidget {
             icon: Icons.home,
             onTap: () => Navigator.pop(context),
             text: "H O M E",
+          ),
+
+          // order history list tile
+          MyDrawerTile(
+            icon: Icons.history,
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OrderHistoryPage(),
+                ),
+              );
+            },
+            text: "O R D E R  H I S T O R Y",
           ),
 
           // settings list tile
