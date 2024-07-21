@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:food_delivery_app/models/customer.dart';
+import 'package:food_delivery_app/pages/home_page.dart';
+import 'package:food_delivery_app/services/auth/auth_services.dart';
 import 'package:food_delivery_app/components/my_button.dart';
 import 'package:food_delivery_app/components/my_textfield.dart';
-import 'package:food_delivery_app/services/auth/auth_services.dart';
-import 'package:email_validator/email_validator.dart'; // Add this import
+import 'package:email_validator/email_validator.dart';
 
 class LoginPage extends StatefulWidget {
   final void Function()? onTap;
@@ -14,11 +18,11 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Text editing controllers
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final FocusNode emailFocusNode = FocusNode();
+  final FocusNode passwordFocusNode = FocusNode();
 
-  // Error messages
   String emailError = '';
   String passwordError = '';
 
@@ -26,10 +30,11 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    emailFocusNode.dispose();
+    passwordFocusNode.dispose();
     super.dispose();
   }
 
-  // Login method
   void login() async {
     setState(() {
       emailError =
@@ -44,10 +49,30 @@ class _LoginPageState extends State<LoginPage> {
 
     final authService = AuthService();
     try {
-      await authService.signInWithEmailPassword(
+      UserCredential userCredential = await authService.signInWithEmailPassword(
         emailController.text,
         passwordController.text,
       );
+
+      final customerDoc = await FirebaseFirestore.instance
+          .collection('customers')
+          .doc(userCredential.user?.uid)
+          .get();
+
+      if (customerDoc.exists) {
+        final customer = Customer.fromFirestore(customerDoc);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(email: customer.email),
+          ),
+        );
+      } else {
+        _showErrorDialog(
+          "Customer Not Found",
+          "The customer data was not found in the database.",
+        );
+      }
     } catch (e) {
       _showErrorDialog(
         "Login Failed",
@@ -56,11 +81,9 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Forgot password
   void forgotPw() async {
     final String email = emailController.text.trim();
 
-    // Validate email format
     if (!EmailValidator.validate(email)) {
       _showErrorDialog(
         "Invalid Email",
@@ -73,9 +96,10 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await authService.sendPasswordResetEmail(email);
       _showSuccessDialog(
-          "Success", "Password reset email sent. Please check your inbox.");
+        "Success",
+        "Password reset email sent. Please check your inbox.",
+      );
     } catch (e) {
-      // Log the error for debugging
       print("Error in forgotPw: $e");
       _showErrorDialog(
         "Failed to Send Email",
@@ -84,7 +108,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Show error dialog
   void _showErrorDialog(String title, String message) {
     showDialog(
       context: context,
@@ -101,7 +124,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Show success dialog
   void _showSuccessDialog(String title, String message) {
     showDialog(
       context: context,
@@ -129,14 +151,12 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildLogo(),
-              const SizedBox(height: 1),
+              const SizedBox(height: 10),
               _buildAppSlogan(),
               const SizedBox(height: 30),
               _buildEmailTextField(),
-              if (emailError.isNotEmpty) _buildErrorText(emailError),
               const SizedBox(height: 15),
               _buildPasswordTextField(),
-              if (passwordError.isNotEmpty) _buildErrorText(passwordError),
               const SizedBox(height: 15),
               _buildSignInButton(),
               const SizedBox(height: 30),
@@ -172,6 +192,8 @@ class _LoginPageState extends State<LoginPage> {
       controller: emailController,
       hintText: "Email",
       obscureText: false,
+      focusNode: emailFocusNode,
+      errorText: emailError.isNotEmpty ? emailError : null,
     );
   }
 
@@ -180,16 +202,8 @@ class _LoginPageState extends State<LoginPage> {
       controller: passwordController,
       hintText: "Password",
       obscureText: true,
-    );
-  }
-
-  Widget _buildErrorText(String errorText) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Text(
-        errorText,
-        style: TextStyle(color: Theme.of(context).colorScheme.error),
-      ),
+      focusNode: passwordFocusNode,
+      errorText: passwordError.isNotEmpty ? passwordError : null,
     );
   }
 

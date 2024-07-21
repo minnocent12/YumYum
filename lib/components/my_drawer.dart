@@ -7,13 +7,20 @@ import '../pages/order_history_page.dart'; // Import the Order History Page
 class MyDrawer extends StatelessWidget {
   const MyDrawer({super.key});
 
-  void logout() {
+  void logout(BuildContext context) async {
     final authService = AuthService();
-    authService.signOut();
+    await authService.signOut();
+    Navigator.popUntil(
+        context,
+        (route) => route
+            .isFirst); // Navigate to the home screen or login screen after logout
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = AuthService().getCurrentUser(); // Get the current user
+    final customerId = user?.uid ?? ''; // Get the customer ID
+
     return Drawer(
       backgroundColor: Theme.of(context).colorScheme.surface,
       child: Column(
@@ -50,7 +57,8 @@ class MyDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const OrderHistoryPage(),
+                  builder: (context) =>
+                      OrderHistoryPage(customerId: customerId),
                 ),
               );
             },
@@ -77,10 +85,7 @@ class MyDrawer extends StatelessWidget {
           MyDrawerTile(
             text: "L O G O U T",
             icon: Icons.logout,
-            onTap: () {
-              logout();
-              Navigator.pop(context);
-            },
+            onTap: () => logout(context), // Pass context to logout method
           ),
 
           const SizedBox(height: 25),

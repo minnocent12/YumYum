@@ -11,7 +11,9 @@ import 'package:food_delivery_app/pages/food_page.dart';
 import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String email; // Add this parameter
+
+  const HomePage({super.key, required this.email}); // Update constructor
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -19,7 +21,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
-  // tab bar controller
+  // Tab bar controller
   late TabController _tabController;
 
   @override
@@ -35,24 +37,24 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
-  // sort out and return a list of food items that belong to specific category
+  // Sort out and return a list of food items that belong to a specific category
   List<Food> _filterMenuByCategory(FoodCategory category, List<Food> fullMenu) {
     return fullMenu.where((food) => food.category == category).toList();
   }
 
-  // return list of foods in given category
+  // Return list of foods in a given category
   List<Widget> getFoodInThisCategory(List<Food> fullMenu) {
     return FoodCategory.values.map((category) {
-      // get category menu
+      // Get category menu
       List<Food> categoryMenu = _filterMenuByCategory(category, fullMenu);
       return ListView.builder(
           itemCount: categoryMenu.length,
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           itemBuilder: (context, index) {
-            // get individual food
+            // Get individual food
             final food = categoryMenu[index];
-            // return food tile UI
+            // Return food tile UI
             return FoodTile(
               food: food,
               onTap: () => Navigator.push(
@@ -75,6 +77,7 @@ class _HomePageState extends State<HomePage>
                 MySilverAppBar(
                     title: MyTabBar(tabController: _tabController),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Divider(
@@ -82,10 +85,22 @@ class _HomePageState extends State<HomePage>
                           endIndent: 25,
                           color: Theme.of(context).colorScheme.secondary,
                         ),
-                        // current location
+                        // Greeting with customer email
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'Hi, ${widget.email}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                        ),
+                        // Current location
                         MyCurrentLocation(),
-
-                        // description box
+                        // Description box
                         const MyDescriptionBox(),
                       ],
                     ))

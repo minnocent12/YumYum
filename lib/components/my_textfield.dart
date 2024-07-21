@@ -5,14 +5,16 @@ class MyTextField extends StatelessWidget {
   final String hintText;
   final bool obscureText;
   final FocusNode? focusNode; // Make focusNode nullable
+  final String? errorText; // Add errorText parameter
 
   const MyTextField({
-    super.key, // Add Key? key parameter
+    super.key,
     required this.controller,
     required this.hintText,
     required this.obscureText,
-    this.focusNode, // Nullable focusNode
-  }); // Use super(key: key) here
+    this.focusNode,
+    this.errorText, // Initialize errorText
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +22,7 @@ class MyTextField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: TextField(
         controller: controller,
-        focusNode: focusNode, // Assign focusNode to TextField
+        focusNode: focusNode,
         obscureText: obscureText,
         decoration: InputDecoration(
           enabledBorder: OutlineInputBorder(
@@ -37,6 +39,7 @@ class MyTextField extends StatelessWidget {
           hintStyle: TextStyle(
             color: Theme.of(context).colorScheme.primary,
           ),
+          errorText: errorText, // Display error text
         ),
       ),
     );

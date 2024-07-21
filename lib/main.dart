@@ -5,6 +5,7 @@ import 'package:food_delivery_app/firebase_options.dart';
 import 'package:food_delivery_app/models/restaurant.dart';
 import 'package:food_delivery_app/themes/theme_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:food_delivery_app/pages/customer_section.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,8 +30,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const AuthGate(),
+      home: AuthGate(),
       theme: Provider.of<ThemeProvider>(context).themeData,
+      // Define named routes for your app
+      routes: {
+        '/customer_section': (context) => const CustomerSection(),
+        // Add other routes here
+      },
     );
   }
 }

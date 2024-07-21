@@ -1,18 +1,13 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:food_delivery_app/services/auth/auth_services.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../components/my_button.dart';
 import '../components/my_textfield.dart';
 
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;
 
-  const RegisterPage({
-    super.key,
-    required this.onTap,
-  });
+  const RegisterPage({Key? key, required this.onTap}) : super(key: key);
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -36,7 +31,7 @@ class _RegisterPageState extends State<RegisterPage> {
   String confirmPasswordError = '';
 
   // AuthService instance
-  final _authService = AuthService();
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
@@ -56,6 +51,9 @@ class _RegisterPageState extends State<RegisterPage> {
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    emailFocusNode.dispose();
+    passwordFocusNode.dispose();
+    confirmPasswordFocusNode.dispose();
     super.dispose();
   }
 
@@ -76,7 +74,7 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() {
       passwordError = _isValidPassword(passwordController.text)
           ? ''
-          : 'Please enter a strong password';
+          : 'Please enter a strong password.';
     });
   }
 
@@ -102,7 +100,7 @@ class _RegisterPageState extends State<RegisterPage> {
               : '';
       passwordError = passwordController.text.isEmpty ||
               !_isValidPassword(passwordController.text)
-          ? 'Please enter a strong password'
+          ? 'Please enter a strong password.'
           : '';
       confirmPasswordError = confirmPasswordController.text.isEmpty ||
               confirmPasswordController.text != passwordController.text
@@ -127,18 +125,26 @@ class _RegisterPageState extends State<RegisterPage> {
 
       // Perform registration logic
       try {
-        await _authService.signUpWithEmailPassword(
+        var userCredential = await _authService.signUpWithEmailPassword(
           emailController.text,
           passwordController.text,
         );
+
+        // Create a new customer entry in Firestore
+        await FirebaseFirestore.instance
+            .collection('customers')
+            .doc(userCredential.user?.uid)
+            .set({
+          'email': emailController.text,
+          // Add any other customer details here
+        });
+
         // Registration successful, navigate to next screen or show success message
+        Navigator.of(context).pop(); // Navigate back or to a new screen
       } catch (e) {
         _showErrorDialog(
-          /*"Registration Failed",
+          "Registration Failed",
           "An error occurred while creating your account. Please try again.",
-          */
-          "Email Already Registered",
-          "This email address is already registered. Please use a different email.",
         );
       }
     } else {
@@ -192,21 +198,12 @@ class _RegisterPageState extends State<RegisterPage> {
   // Scroll to the first error field
   void _scrollToFirstErrorField() {
     if (emailError.isNotEmpty) {
-      _scrollToField(emailFocusNode);
+      FocusScope.of(context).requestFocus(emailFocusNode);
     } else if (passwordError.isNotEmpty) {
-      _scrollToField(passwordFocusNode);
+      FocusScope.of(context).requestFocus(passwordFocusNode);
     } else if (confirmPasswordError.isNotEmpty) {
-      _scrollToField(confirmPasswordFocusNode);
+      FocusScope.of(context).requestFocus(confirmPasswordFocusNode);
     }
-  }
-
-  // Helper method to scroll to a specific field
-  void _scrollToField(FocusNode focusNode) {
-    Scrollable.ensureVisible(
-      focusNode.context!,
-      alignment: 0.5,
-      duration: const Duration(milliseconds: 500),
-    );
   }
 
   @override
@@ -225,18 +222,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   width: 100,
                   height: 100,
                 ),
-                // Logo
-
-                /* 
-                Icon(
-                  Icons.lock_open_rounded,
-                  size: 100,
-                  color: Theme.of(context).colorScheme.primary,
-                ),*/
-
                 const SizedBox(height: 25),
-
-                // Message, app slogan
                 Text(
                   "Let's create an account for you",
                   style: TextStyle(
@@ -244,10 +230,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-
                 const SizedBox(height: 25),
-
-                // Email text field
                 MyTextField(
                   controller: emailController,
                   focusNode: emailFocusNode,
@@ -262,10 +245,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
-
                 const SizedBox(height: 10),
-
-                // Password text field with criteria info
                 Stack(
                   children: [
                     MyTextField(
@@ -281,9 +261,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         onTap: _showPasswordCriteriaDialog,
                         child: Container(
                           padding: const EdgeInsets.all(5),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.grey,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                           child: const Text(
                             "!",
@@ -309,10 +289,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                   ),
-
                 const SizedBox(height: 10),
-
-                // Confirm Password text field
                 MyTextField(
                   controller: confirmPasswordController,
                   focusNode: confirmPasswordFocusNode,
@@ -330,41 +307,27 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                   ),
-
-                const SizedBox(height: 10),
-
-                // Sign Up button
+                const SizedBox(height: 20),
                 MyButton(
                   text: "Sign Up",
                   onTap: register,
                 ),
-
-                const SizedBox(height: 25),
-
-                // Already have an account? Login
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Already have an account? ",
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account?"),
+                    TextButton(
+                      onPressed: widget.onTap,
+                      child: const Text(
+                        "Login",
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Color.fromARGB(255, 87, 89, 90),
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: widget.onTap,
-                        child: Text(
-                          "Login now",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
