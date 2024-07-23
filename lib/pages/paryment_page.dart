@@ -75,22 +75,20 @@ class _PaymentPageState extends State<PaymentPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Center the logo image
               Center(
                 child: Image.asset(
                   'lib/images/logo/Yum_Yum_Logo.PNG',
-                  height: 100, // Adjust the height as needed
-                  width: 100, // Adjust the width as needed
+                  height: 100,
+                  width: 100,
                 ),
               ),
-              const SizedBox(height: 16), // Space between logo and text
+              const SizedBox(height: 16),
               const Text(
                 "Thank you for your purchase!",
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                textAlign: TextAlign.center, // Center-align the text
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(
-                  height: 16), // Space between text and receipt content
+              const SizedBox(height: 16),
               Text(displayCartReceipt(), textAlign: TextAlign.left),
             ],
           ),
@@ -101,12 +99,9 @@ class _PaymentPageState extends State<PaymentPage> {
               Navigator.pop(context); // Close the receipt dialog
               Provider.of<Restaurant>(context, listen: false)
                   .clearCart(); // Clear cart after receipt confirmation
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DeliveryProgressPage(),
-                ),
-              );
+
+              // Navigate back to the home page
+              Navigator.popUntil(context, (route) => route.isFirst);
             },
             child: const Text("OK"),
           ),
