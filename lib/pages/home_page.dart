@@ -85,6 +85,7 @@ class _HomePageState extends State<HomePage>
                           endIndent: 25,
                           color: Theme.of(context).colorScheme.secondary,
                         ),
+                        /*
                         // Greeting with customer email
                         Padding(
                           padding: const EdgeInsets.all(16.0),
@@ -98,6 +99,7 @@ class _HomePageState extends State<HomePage>
                                 ),
                           ),
                         ),
+                        */
                         // Current location
                         MyCurrentLocation(),
                         // Description box

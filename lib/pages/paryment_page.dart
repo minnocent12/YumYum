@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 import 'package:food_delivery_app/components/my_button.dart';
 import 'package:food_delivery_app/models/restaurant.dart';
+import 'package:food_delivery_app/models/food.dart'; // Ensure this import is present
+import 'package:intl/intl.dart';
 import 'delivery_progress_page.dart';
+import 'package:provider/provider.dart';
 
 class PaymentPage extends StatefulWidget {
   const PaymentPage({Key? key}) : super(key: key);
@@ -19,8 +22,11 @@ class _PaymentPageState extends State<PaymentPage> {
   String _cvvCode = '';
   bool _isCvvFocused = false;
 
-  // Assuming you have a reference to your Restaurant class
-  final Restaurant restaurant = Restaurant();
+  @override
+  void initState() {
+    super.initState();
+    // Optionally: Load cart data or initialize necessary data here
+  }
 
   void _userTappedPay() {
     if (_formKey.currentState!.validate()) {
@@ -50,21 +56,107 @@ class _PaymentPageState extends State<PaymentPage> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DeliveryProgressPage(),
-                ),
-              );
-              restaurant
-                  .clearCart(); // Call clearCart() after payment confirmation
+              Navigator.pop(context); // Close the confirmation dialog
+              _showReceiptDialog();
             },
             child: const Text("Yes"),
           ),
         ],
       ),
     );
+  }
+
+  void _showReceiptDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Here is your receipt"),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Center the logo image
+              Center(
+                child: Image.asset(
+                  'lib/images/logo/Yum_Yum_Logo.PNG',
+                  height: 100, // Adjust the height as needed
+                  width: 100, // Adjust the width as needed
+                ),
+              ),
+              const SizedBox(height: 16), // Space between logo and text
+              const Text(
+                "Thank you for your purchase!",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                textAlign: TextAlign.center, // Center-align the text
+              ),
+              const SizedBox(
+                  height: 16), // Space between text and receipt content
+              Text(displayCartReceipt(), textAlign: TextAlign.left),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close the receipt dialog
+              Provider.of<Restaurant>(context, listen: false)
+                  .clearCart(); // Clear cart after receipt confirmation
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DeliveryProgressPage(),
+                ),
+              );
+            },
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Method to generate the receipt
+  String displayCartReceipt() {
+    final restaurant = Provider.of<Restaurant>(context, listen: false);
+    final receipt = StringBuffer();
+    receipt.writeln();
+
+    // Format the date to include up to seconds only
+    String formattedDate =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+    receipt.writeln(formattedDate);
+    receipt.writeln();
+    receipt.writeln("----------");
+
+    // Retrieve the cart items and total price from the restaurant instance
+    for (final cartItem in restaurant.cart) {
+      receipt.writeln(
+          "${cartItem.quantity} x ${cartItem.food.name} - ${_formatPrice(cartItem.food.price)}");
+      if (cartItem.selectedAddon.isNotEmpty) {
+        receipt.writeln("   Add-ons: ${_formatAddons(cartItem.selectedAddon)}");
+      }
+      receipt.writeln();
+    }
+    receipt.writeln("----------");
+    receipt.writeln();
+    receipt.writeln("Total Items: ${restaurant.getTotalItemCount()}");
+    receipt.writeln("Total Price: ${_formatPrice(restaurant.getTotalPrice())}");
+    receipt.writeln();
+    receipt.writeln("Delivering to: ${restaurant.deliveryAddress}");
+
+    return receipt.toString();
+  }
+
+  // Updated _formatAddons to handle List<Addon>
+  String _formatAddons(List<Addon> addons) {
+    return addons
+        .map((addon) => "${addon.name} (\$${addon.price.toStringAsFixed(2)})")
+        .join(', ');
+  }
+
+  // Example method for formatting price
+  String _formatPrice(double price) {
+    return "\$${price.toStringAsFixed(2)}";
   }
 
   Widget _buildDialogRow(String title, String value) {
@@ -77,7 +169,7 @@ class _PaymentPageState extends State<PaymentPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false, // Prevents keyboard overflow
+      resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -93,7 +185,7 @@ class _PaymentPageState extends State<PaymentPage> {
               cardHolderName: _cardHolderName,
               cvvCode: _cvvCode,
               showBackView: _isCvvFocused,
-              onCreditCardWidgetChange: (p0) {},
+              onCreditCardWidgetChange: (creditCardBrand) {},
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -109,6 +201,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     _expiryDate = data.expiryDate;
                     _cardHolderName = data.cardHolderName;
                     _cvvCode = data.cvvCode;
+                    _isCvvFocused = data.isCvvFocused;
                   });
                 },
                 obscureCvv: true,

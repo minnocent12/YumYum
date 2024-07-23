@@ -11,9 +11,10 @@ class CartItem {
     required this.selectedAddon,
   });
 
-  // G E T T E R S 
+  // G E T T E R S
   double get totalPrice {
-    double addonsPrice = selectedAddon.fold(0, (sum, addon) => sum + addon.price);
+    double addonsPrice =
+        selectedAddon.fold(0, (sum, addon) => sum + addon.price);
     return (food.price + addonsPrice) * quantity;
   }
 }
