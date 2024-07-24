@@ -369,7 +369,7 @@ class Restaurant extends ChangeNotifier {
   final List<CartItem> _cart = [];
 
   // Delivery Address which the user can change/update
-  String _deliveryAdress = "99 Hollywood Blv";
+  String _deliveryAdress = "Enter your Address here.";
   /*
 
     G E T T E R S 
@@ -471,8 +471,7 @@ class Restaurant extends ChangeNotifier {
   */
 
   // generate receipt
-  String displayCartReceipt() 
-  {
+  String displayCartReceipt() {
     final receipt = StringBuffer();
     receipt.writeln("Here is your receipt.");
     receipt.writeln();

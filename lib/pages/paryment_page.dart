@@ -69,7 +69,9 @@ class _PaymentPageState extends State<PaymentPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Here is your receipt"),
+        title: Center(
+          child: const Text("Here is your receipt"),
+        ),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
