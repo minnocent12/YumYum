@@ -12,15 +12,14 @@ class DeliveryProgressPage extends StatefulWidget {
 }
 
 class _DeliveryProgressPageState extends State<DeliveryProgressPage> {
-  
   // get access to db
   FirestoreService db = FirestoreService();
-  
+
   @override
   void initState() {
     super.initState();
 
-    // if we get to this page then we can submit order to database 
+    // if we get to this page then we can submit order to database
     String receipt = context.read<Restaurant>().displayCartReceipt();
     db.saveOrderToDatabase(receipt);
   }

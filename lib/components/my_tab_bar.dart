@@ -10,7 +10,9 @@ class MyTabBar extends StatelessWidget {
 
   List<Tab> _buildCategoryTabs() {
     return FoodCategory.values.map((category) {
-      return Tab(text: category.toString().split('.').last,);
+      return Tab(
+        text: category.toString().split('.').last,
+      );
     }).toList();
   }
 
